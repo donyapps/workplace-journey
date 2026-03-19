@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Weight of Work — An Interactive Journey</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0c0c14;
+    --bg2: #13131f;
+    --emp-primary: #E85D4A;
+    --emp-warm: #F4A261;
+    --emp-glow: rgba(232, 93, 74, 0.15);
+    --mgr-primary: #4ECDC4;
+    --mgr-cool: #A8DADC;
+    --mgr-glow: rgba(78, 205, 196, 0.15);
+    --text: #e8e0d5;
+    --text-dim: #8a8070;
+    --text-dimmer: #4a4440;
+    --border: rgba(255,255,255,0.07);
+    --gold: #C9A84C;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Lora', Georgia, serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 9999;
+    opacity: 0.5;
+  }
+
+  /* ── LANDING ── */
+  #landing {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 40px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  #landing::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 20% 50%, rgba(232,93,74,0.08) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 50% at 80% 50%, rgba(78,205,196,0.08) 0%, transparent 70%);
+  }
+
+  .landing-kicker {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 28px;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.2s forwards;
+  }
+
+  .landing-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(3rem, 8vw, 7rem);
+    font-weight: 900;
+    line-height: 1.0;
+    letter-spacing: -0.02em;
+    margin-bottom: 24px;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.4s forwards;
+  }
+
+  .landing-title em {
+    font-style: italic;
+    color: var(--emp-primary);
+  }
+
+  .landing-subtitle {
+    font-size: clamp(1rem, 2.5vw, 1.2rem);
+    line-height: 1.7;
+    color: var(--text-dim);
+    max-width: 560px;
+    margin: 0 auto 52px;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.6s forwards;
+  }
+
+  .path-chooser {
+    display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.8s forwards;
+  }
+
+  .path-card {
+    width: 260px;
+    padding: 32px 28px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    text-align: left;
+    background: rgba(255,255,255,0.02);
+  }
+
+  .path-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .path-card.employee::before { background: var(--emp-glow); }
+  .path-card.manager::before { background: var(--mgr-glow); }
+
+  .path-card:hover::before { opacity: 1; }
+
+  .path-card:hover {
+    border-color: rgba(255,255,255,0.15);
+    transform: translateY(-4px);
+  }
+
+  .path-card.employee:hover { border-color: var(--emp-primary); }
+  .path-card.manager:hover { border-color: var(--mgr-primary); }
+
+  .path-icon {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    margin-bottom: 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+
+  .path-card.employee .path-icon { background: rgba(232,93,74,0.15); }
+  .path-card.manager .path-icon { background: rgba(78,205,196,0.15); }
+
+  .path-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .path-card.employee .path-label { color: var(--emp-primary); }
+  .path-card.manager .path-label { color: var(--mgr-primary); }
+
+  .path-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    line-height: 1.2;
+  }
+
+  .path-desc {
+    font-size: 0.82rem;
+    line-height: 1.6;
+    color: var(--text-dim);
+  }
+
+  .path-arrow {
+    margin-top: 20px;
+    font-size: 1.2rem;
+    transition: transform 0.3s;
+    display: inline-block;
+  }
+
+  .path-card:hover .path-arrow { transform: translateX(6px); }
+
+  /* ── STORY VIEW ── */
+  #story {
+    display: none;
+    min-height: 100vh;
+    flex-direction: column;
+  }
+
+  #story.active { display: flex; }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 16px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(12,12,20,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .topbar-left {
+    display: flex; align-items: center; gap: 16px;
+  }
+
+  .back-btn {
+    background: none; border: 1px solid var(--border);
+    color: var(--text-dim); padding: 6px 14px;
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    letter-spacing: 0.1em; cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+
+  .back-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+  .topbar-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .topbar-right {
+    display: flex; align-items: center; gap: 20px;
+  }
+
+  .progress-counter {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  .progress-counter span { color: var(--text); }
+
+  .switch-path-btn {
+    padding: 7px 16px;
+    border-radius: 2px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    border: 1px solid;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  .switch-path-btn.to-employee {
+    border-color: var(--emp-primary);
+    color: var(--emp-primary);
+    background: rgba(232,93,74,0.05);
+  }
+
+  .switch-path-btn.to-manager {
+    border-color: var(--mgr-primary);
+    color: var(--mgr-primary);
+    background: rgba(78,205,196,0.05);
+  }
+
+  .switch-path-btn:hover { opacity: 0.8; }
+
+  /* ── PROGRESS BAR ── */
+  .progress-bar-track {
+    position: fixed; top: 57px; left: 0; right: 0;
+    height: 2px; z-index: 99;
+    background: rgba(255,255,255,0.05);
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    transition: width 0.4s ease, background 0.5s ease;
+  }
+
+  /* ── SCENE CONTAINER ── */
+  .scene-container {
+    margin-top: 59px;
+    flex: 1;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 60px 20px 120px;
+    min-height: calc(100vh - 59px);
+  }
+
+  .scene {
+    display: none;
+    max-width: 780px;
+    width: 100%;
+    animation: sceneIn 0.5s ease forwards;
+  }
+
+  .scene.active { display: block; }
+
+  @keyframes sceneIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .scene-number {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--text-dimmer);
+    margin-bottom: 8px;
+  }
+
+  .scene-tag {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 2px;
+    margin-bottom: 20px;
+  }
+
+  .emp-tag { background: rgba(232,93,74,0.1); color: var(--emp-primary); border: 1px solid rgba(232,93,74,0.2); }
+  .mgr-tag { background: rgba(78,205,196,0.1); color: var(--mgr-primary); border: 1px solid rgba(78,205,196,0.2); }
+
+  .scene-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 28px;
+  }
+
+  .emp-color { color: var(--emp-primary); }
+  .mgr-color { color: var(--mgr-primary); }
+
+  .scene-body {
+    font-size: 1.05rem;
+    line-height: 1.85;
+    color: #c8bfb5;
+    margin-bottom: 32px;
+  }
+
+  .scene-body p { margin-bottom: 16px; }
+  .scene-body strong { color: var(--text); font-weight: 500; }
+
+  /* ── VISUAL ELEMENTS ── */
+  .scene-visual {
+    margin: 32px 0;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Stat card */
+  .stat-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 28px 32px;
+    margin: 24px 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px;
+  }
+
+  .stat-card.emp::before { background: var(--emp-primary); }
+  .stat-card.mgr::before { background: var(--mgr-primary); }
+
+  .stat-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 3.5rem;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .stat-card.emp .stat-number { color: var(--emp-primary); }
+  .stat-card.mgr .stat-number { color: var(--mgr-primary); }
+
+  .stat-label {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  /* Quote card */
+  .quote-card {
+    background: rgba(255,255,255,0.02);
+    border-left: 3px solid var(--gold);
+    padding: 24px 28px;
+    margin: 28px 0;
+    border-radius: 0 4px 4px 0;
+    font-style: italic;
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: var(--text);
+  }
+
+  .quote-attr {
+    display: block;
+    font-style: normal;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    margin-top: 12px;
+    text-transform: uppercase;
+  }
+
+  /* Symptom list */
+  .symptom-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin: 24px 0;
+  }
+
+  .symptom-item {
+    background: rgba(232,93,74,0.05);
+    border: 1px solid rgba(232,93,74,0.15);
+    border-radius: 4px;
+    padding: 16px;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--text-dim);
+    position: relative;
+    padding-left: 32px;
+  }
+
+  .symptom-item::before {
+    content: '↑';
+    position: absolute; left: 12px; top: 16px;
+    color: var(--emp-primary);
+    font-size: 0.9rem;
+  }
+
+  .symptom-item strong { display: block; color: var(--text); margin-bottom: 2px; font-size: 0.88rem; font-style: normal; font-family: 'Lora'; }
+
+  /* Intervention list */
+  .intervention-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+    margin: 24px 0;
+  }
+
+  .intervention-item {
+    background: rgba(78,205,196,0.04);
+    border: 1px solid rgba(78,205,196,0.15);
+    border-radius: 4px;
+    padding: 16px;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--text-dim);
+    position: relative;
+    padding-left: 32px;
+  }
+
+  .intervention-item::before {
+    content: '→';
+    position: absolute; left: 12px; top: 16px;
+    color: var(--mgr-primary);
+    font-size: 0.9rem;
+  }
+
+  .intervention-item strong { display: block; color: var(--text); margin-bottom: 2px; font-size: 0.88rem; }
+
+  /* Timeline bar */
+  .timeline-bar {
+    display: flex;
+    gap: 4px;
+    margin: 20px 0;
+    align-items: flex-end;
+    height: 80px;
+  }
+
+  .timeline-bar-item {
+    flex: 1;
+    border-radius: 2px 2px 0 0;
+    position: relative;
+    transition: opacity 0.3s;
+  }
+
+  .timeline-bar-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    color: var(--text-dimmer);
+    text-align: center;
+    margin-top: 4px;
+    letter-spacing: 0.05em;
+  }
+
+  /* Stress meter */
+  .stress-meter {
+    margin: 24px 0;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 24px;
+  }
+
+  .stress-meter-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+  }
+
+  .stress-track {
+    background: rgba(255,255,255,0.05);
+    border-radius: 100px;
+    height: 12px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .stress-fill {
+    height: 100%;
+    border-radius: 100px;
+    transition: width 1s ease 0.3s;
+    position: relative;
+  }
+
+  .stress-fill::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 100%);
+  }
+
+  .stress-labels {
+    display: flex; justify-content: space-between;
+    font-family: 'DM Mono', monospace; font-size: 9px;
+    color: var(--text-dimmer); letter-spacing: 0.1em;
+  }
+
+  /* Illustration SVG scenes */
+  .scene-svg {
+    width: 100%;
+    max-height: 260px;
+    margin: 24px 0;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  /* Two-col layout */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 20px 0;
+  }
+
+  @media (max-width: 580px) {
+    .two-col { grid-template-columns: 1fr; }
+  }
+
+  .mini-card {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px;
+  }
+
+  .mini-card-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .mini-card-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .mini-card-desc {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    line-height: 1.4;
+  }
+
+  /* Highlight box */
+  .highlight-box {
+    background: rgba(201,168,76,0.06);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 4px;
+    padding: 20px 24px;
+    margin: 20px 0;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--text-dim);
+  }
+
+  .highlight-box strong { color: var(--gold); }
+
+  /* Warning box */
+  .warning-box {
+    background: rgba(232,93,74,0.06);
+    border: 1px solid rgba(232,93,74,0.2);
+    border-radius: 4px;
+    padding: 20px 24px;
+    margin: 20px 0;
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
+  /* ── NAVIGATION ── */
+  .nav-controls {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    padding: 20px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(12,12,20,0.9);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border);
+    z-index: 100;
+  }
+
+  .nav-btn {
+    background: none; border: 1px solid var(--border);
+    color: var(--text); padding: 10px 24px;
+    font-family: 'DM Mono', monospace; font-size: 12px;
+    letter-spacing: 0.1em; cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .nav-btn:hover:not(:disabled) {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.2);
+  }
+
+  .nav-btn:disabled { opacity: 0.2; cursor: not-allowed; }
+
+  .nav-btn.primary {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.15);
+    font-weight: 500;
+  }
+
+  .nav-dots {
+    display: flex; gap: 6px; align-items: center;
+  }
+
+  .nav-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--text-dimmer);
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+
+  .nav-dot.active {
+    background: var(--text-dim);
+    width: 16px;
+    border-radius: 3px;
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .pulse { animation: pulse 2s infinite; }
+
+  /* ── FINAL SCENE ── */
+  .final-scene {
+    text-align: center;
+    padding: 40px 0;
+  }
+
+  .final-scene .scene-headline {
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+  }
+
+  .resources-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin: 28px 0;
+    text-align: left;
+  }
+
+  .resource-item {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px;
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+
+  .resource-item strong {
+    display: block;
+    color: var(--gold);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .restart-btn {
+    margin-top: 20px;
+    padding: 14px 36px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+
+  .restart-btn:hover { background: rgba(255,255,255,0.08); }
+
+  /* ── PATH INDICATOR ── */
+  .path-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 5px 12px;
+    border-radius: 100px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .path-pill.emp { background: rgba(232,93,74,0.1); color: var(--emp-primary); }
+  .path-pill.mgr { background: rgba(78,205,196,0.1); color: var(--mgr-primary); }
+
+  .path-pill-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  .emp .path-pill-dot { background: var(--emp-primary); }
+  .mgr .path-pill-dot { background: var(--mgr-primary); }
+
+  /* Divider */
+  .scene-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 28px 0;
+  }
+
+  /* Check list */
+  .check-list {
+    list-style: none;
+    margin: 16px 0;
+  }
+
+  .check-list li {
+    padding: 10px 0 10px 28px;
+    position: relative;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  .check-list li:last-child { border-bottom: none; }
+
+  .check-list.emp li::before { content: '✗'; position: absolute; left: 0; color: var(--emp-primary); font-weight: bold; }
+  .check-list.mgr li::before { content: '✓'; position: absolute; left: 0; color: var(--mgr-primary); }
+
+  /* Tooltip/aside */
+  .aside-note {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    color: var(--text-dimmer);
+    padding: 12px 0;
+    border-top: 1px solid var(--border);
+    margin-top: 28px;
+    line-height: 1.6;
+  }
+
+  /* Overwhelm visualization */
+  .overwhelm-viz {
+    background: rgba(232,93,74,0.04);
+    border: 1px solid rgba(232,93,74,0.1);
+    border-radius: 4px;
+    padding: 24px;
+    margin: 20px 0;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    line-height: 2;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+
+  .overwhelm-item {
+    display: inline-block;
+    margin: 2px 4px;
+    padding: 2px 8px;
+    border-radius: 2px;
+    background: rgba(232,93,74,0.08);
+    border: 1px solid rgba(232,93,74,0.15);
+    font-size: 10px;
+    color: var(--emp-primary);
+    opacity: 0;
+    animation: popIn 0.3s forwards;
+  }
+
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  @media (max-width: 600px) {
+    .topbar { padding: 14px 16px; }
+    .topbar-title { display: none; }
+    .nav-controls { padding: 14px 16px; }
+    .scene-container { padding: 50px 16px 100px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+  LANDING SCREEN
+══════════════════════════════════════════ -->
+<section id="landing">
+  <p class="landing-kicker">An interactive narrative · Workplace wellbeing</p>
+  <h1 class="landing-title">The Weight<br>of <em>Work</em></h1>
+  <p class="landing-subtitle">
+    A dual-path story about high job demands, the toll they take, and the difference a manager can make. Choose who you follow.
+  </p>
+  <div class="path-chooser">
+    <div class="path-card employee" onclick="startJourney('employee')">
+      <div class="path-icon">🧑‍💼</div>
+      <div class="path-label">Path One</div>
+      <div class="path-name">Alex's Story</div>
+      <div class="path-desc">Follow an employee through the mounting pressure of unsustainable demands — the signs, the symptoms, the breaking point.</div>
+      <div class="path-arrow" style="color: var(--emp-primary);">→</div>
+    </div>
+    <div class="path-card manager" onclick="startJourney('manager')">
+      <div class="path-icon">👔</div>
+      <div class="path-label">Path Two</div>
+      <div class="path-name">Sam's Story</div>
+      <div class="path-desc">Follow a manager learning to see the signs, intervene effectively, and build a team that can truly thrive.</div>
+      <div class="path-arrow" style="color: var(--mgr-primary);">→</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+  STORY VIEW
+══════════════════════════════════════════ -->
+<div id="story">
+  <!-- Top Bar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="back-btn" onclick="goHome()">← Home</button>
+      <span class="topbar-title" id="topbar-title">Alex's Journey</span>
+    </div>
+    <div class="topbar-right">
+      <span class="progress-counter"><span id="current-scene-num">1</span> / <span id="total-scenes">14</span></span>
+      <button class="switch-path-btn" id="switch-btn" onclick="switchPath()">Switch Path</button>
+    </div>
+  </div>
+
+  <!-- Progress Bar -->
+  <div class="progress-bar-track">
+    <div class="progress-bar-fill" id="progress-fill"></div>
+  </div>
+
+  <!-- Scene Container -->
+  <div class="scene-container" id="scene-container">
+    <!-- Scenes injected by JS -->
+  </div>
+
+  <!-- Navigation -->
+  <div class="nav-controls">
+    <button class="nav-btn" id="prev-btn" onclick="navigate(-1)" disabled>← Prev</button>
+    <div class="nav-dots" id="nav-dots"></div>
+    <button class="nav-btn primary" id="next-btn" onclick="navigate(1)">Next →</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// DATA — SCENES
+// ══════════════════════════════════════════
+
+const EMPLOYEE_SCENES = [
+  {
+    tag: 'emp',
+    number: '01 / Introduction',
+    headline: 'Meet <em class="emp-color">Alex</em>',
+    body: `
+      <p>Alex is a mid-level project coordinator at a fast-growing technology consultancy. Smart, conscientious, genuinely committed. Two promotions in four years. The kind of person who always says yes.</p>
+      <p>The company is ambitious. Targets are aggressive. Headcount hasn't kept pace with the pipeline. And Alex — like so many others — has quietly absorbed the overflow.</p>
+      <p>This is the story of what happened next.</p>
+    `,
+    visual: `
+      <div class="stat-card emp">
+        <div class="stat-number">72%</div>
+        <div class="stat-label">of employees in high-demand roles report feeling unable to switch off from work. Alex is one of them.</div>
+      </div>
+    `
+  },
+  {
+    tag: 'emp',
+    number: '02 / The Environment',
+    headline: 'A culture of <em class="emp-color">always-on</em>',
+    body: `
+      <p>High job demands don't arrive in a single moment. They accumulate. More clients than capacity. Meetings that fill every slot. Deadlines that overlap. A culture where availability is worn as a badge of honour.</p>
+      <p>For Alex, it started with a single extra project. Then another. Then the baseline simply shifted.</p>
+    `,
+    visual: `
+      <div class="overwhelm-viz" id="overwhelm-viz">
+        Loading demands...
+      </div>
+      <div class="two-col">
+        <div class="mini-card">
+          <div class="mini-card-label" style="color:var(--emp-primary)">Weekly hours</div>
+          <div class="mini-card-value" style="color:var(--emp-primary)">54+</div>
+          <div class="mini-card-desc">vs. contracted 37.5 hours</div>
+        </div>
+        <div class="mini-card">
+          <div class="mini-card-label" style="color:var(--emp-primary)">Active projects</div>
+          <div class="mini-card-value" style="color:var(--emp-primary)">11</div>
+          <div class="mini-card-desc">up from 6 just eight months ago</div>
+        </div>
+      </div>
+    `
+  },
+  {
+    tag: 'emp',
+    number: '03 / First Warning Signs',
+    headline: 'The subtle <em class="emp-color">early signals</em>',
+    body: `
+      <p>The first signs are easy to dismiss. Easy to explain away. Alex explains them away constantly.</p>
+      <p><strong>The Sunday dread</strong> starts around 4pm. A creeping anxiety about the week ahead. Alex tells people it's just being "conscientious." It isn't.</p>
+      <p>Lunch is eaten at the desk, if eaten at all. Evenings blur into work. The commute becomes an extension of the office via phone.</p>
+    `,
+    visual: `
+      <div class="quote-card">
+        "I just need to get through this sprint. Then things will calm down."
+        <span class="quote-attr">— Alex, to a colleague. It doesn't calm down.</span>
+      </div>
+      <div class="symptom-grid">
+        <div class="symptom-item"><strong>Sunday anxiety</strong>Dread building before the week starts</div>
+        <div class="symptom-item"><strong>Skipping breaks</strong>Lunch eaten at the desk, if at all</div>
+        <div class="symptom-item"><strong>Extended hours</strong>Regularly staying 2–3 hours late</div>
+        <div class="symptom-item"><strong>Weekend emails</strong>Checking work messages on days off</div>
+      </div>
+    `
+  },
+  {
+    tag: 'emp',
+    number: '04 / The Body Reacts',
+    headline: 'When stress becomes <em class="emp-color">physical</em>',
+    body: `
+      <p>The body keeps score. What the mind minimises, the body amplifies. Alex begins experiencing persistent tension headaches. Sleep, once reliable, becomes fragmented and shallow.</p>
+      <p>There are mornings when exhaustion is indistinguishable from illness. Alex shows up anyway — a phenomenon researchers call <strong>presenteeism</strong>: physically present, cognitively absent.</p>
+    `,
+    visual: `
+      <div class="stress-meter">
+        <div class="stress-meter-label">Stress load over time</div>
+        <div class="stress-track">
+          <div class="stress-fill" id="stress-fill-1" style="width:0%; background: linear-gradient(90deg, #E85D4A, #c0392b);"></div>
+        </div>
+        <div class="stress-labels"><span>Baseline</span><span>Current: high</span></div>
+      </div>
+      <div class="symptom-grid">
+        <div class="symptom-item"><strong>Tension headaches</strong>2–3 times per week</div>
+        <div class="symptom-item"><strong>Disrupted sleep</strong>Waking at 3am, mind racing</div>
+        <div class="symptom-item"><strong>Fatigue</strong>Unrefreshing sleep, morning exhaustion</div>
+        <div class="symptom-item"><strong>Frequent illness</strong>3 colds in 4 months</div>
+      </div>
+    `
+  },
+  {
+    tag: 'emp',
+    number: '05 / Cognitive Overload',
+    headline: 'The mind starts <em class="emp-color">fragmenting</em>',
+    body: `
+      <p>Cognitive load has a ceiling. Alex is operating above it. Concentration fractures. Simple tasks require disproportionate effort. A report that once took an hour now takes three.</p>
+      <p>Alex forgets a client call. Then a team meeting. Sends an email to the wrong person. These are not character flaws — they are the predictable output of an overloaded system.</p>
+    `,
+    visual: `
+      <div class="stat-card emp">
+        <div class="stat-number">40%</div>
+        <div class="stat-label">reduction in cognitive performance has been measured in individuals experiencing chronic high-demand work stress. Errors become inevitable, not exceptional.</div>
+      </div>
+      <div class="highlight-box">
+        <strong>Research finding:</strong> When cognitive resources are depleted, the brain prioritises immediate threat response over complex reasoning. Strategic thinking — the very thing Alex's role requires — is the first thing to go.
+      </div>
+    `
+  },
+  {
+    tag: 'emp',
+    number: '06 / The Emotional Shift',
+    headline: 'Irritability, then <em class="emp-color">withdrawal</em>',
+    body: `
+      <p>Alex was known for being collaborative. Generous with time. Now colleagues notice something different: shorter responses, a closed office door, quick to frustration in meetings.</p>
+      <p>Alex knows it too. But the awareness creates its own weight — the effort of managing how one appears on top of everything else.</p>
+      <p>The withdrawal is partly protective. It takes less out of you to stay invisible than to perform being fine.</p>
+    `,
+    visual: `
+      <div class="quote-card">
+        "I don't have the bandwidth for small talk anymore. I barely have bandwidth for the actual work."
+        <span class="quote-attr">— Alex, in a journal entry</span>
+      </div>
+      <div class="symptom-grid">
+        <div class="symptom-item"><strong>Short-temperedness</strong>Snapping in team meetings</div>
+        <div class="symptom-item"><strong>Social withdrawal</strong>Avoiding team lunch, shared spaces</div>
+        <div class="symptom-item"><strong>Emotional numbing</strong>Flat affect, reduced humour</div>
+        <div class="symptom-item"><strong>Cynicism</strong>Sarcasm replacing genuine engagement</div>
+      </div>
+    `
+  },
+  {
+    tag: 'emp',
+    number: '07 / Performance Paradox',
+    headline: 'Working more, <em class="emp-color">delivering less</em>',
+    body: `
+      <p>Here is the painful paradox: Alex is spending more hours than ever, yet output quality is declining. Deadlines are being missed. Work that was once excellent is now merely adequate.</p>
+      <p>The temptation is to work even harder to compensate — to stay even later, start even earlier. This is the hamster wheel of chronic overload. More effort, diminishing returns.</p>
+    `,
+    visual: `
+      <div class="two-col">
+        <div class="mini-card">
+          <div class="mini-card-label" style="color:var(--emp-primary)">Hours worked</div>
+          <div class="mini-card-value" style="color:var(--emp-primary)">↑ 44%</div>
+          <div class="mini-card-desc">compared to 18 months prior</div>
+        </div>
+        <div class="mini-card">
+          <div class="mini-card-label" style="color:var(--emp-primary)">Output quality</div>
+          <div class="mini-card-value" style="color:var(--emp-primary)">↓ 31%</div>
+          <div class="mini-card-desc">based on manager assessments</div>
+        </div>
+      </div>
+      <div class="warning-box" style="color: var(--text-dim);">
+        <span style="color:var(--emp-primary); font-weight:500;">The productivity trap:</span> Organisations that reward visible effort over sustainable output inadvertently create the conditions for this decline. Presenteeism costs UK employers an estimated <strong style="color:var(--text);">£15.1 billion annually</strong>.
+      </div>
+    `
+  },
+  {
+    tag: 'emp',
+    number: '08 / How It Manifests',
+    headline: 'What high demands <em class="emp-color">look like</em> at work',
+    body: `
+      <p>High job demands don't announce themselves. They surface in patterns — in behaviour, in output, in the small moments that accumulate into a picture no single person sees fully.</p>
+      <p>Some manifestations are visible to colleagues. Others are private. All of them are signals.</p>
+    `,
+    visual: `
+      <div class="check-list emp">
+        <li>Missing or rescheduling meetings repeatedly</li>
+        <li>Responses that are curt or out of character</li>
+        <li>Visible physical tension — jaw clenching, rushed movement</li>
+        <li>Volunteering less in group settings, going quiet</li>
+        <li>Submitting work that feels incomplete or unlike their usual standard</li>
+        <li>Visible relief when meetings are cancelled</li>
+        <li>Frequent references to being overwhelmed, even in passing</li>
+        <li>Resistance to taking on new tasks but unable to articulate why</li>
+      </ul>
+      <div class="aside-note">These are observable patterns, not diagnostic criteria. Their significance lies in change from baseline — when these behaviours are new, not longstanding traits.</div>
+    `
+  },
+  {
+    tag: 'emp',
+    number: '09 / The Hidden Cost',
+    headline: 'What Alex stopped <em class="emp-color">doing</em>',
+    body: `
+      <p>Chronic high demand doesn't just add things — it subtracts them. The activities that sustain a person are the first to be traded away in the name of catching up.</p>
+      <p>Alex stopped going to the gym. Stopped meeting friends for dinner. Stopped reading for pleasure. Stopped cooking at home. Each sacrifice felt temporary. None of them were.</p>
+    `,
+    visual: `
+      <div class="stat-card emp">
+        <div class="stat-number">18 mo.</div>
+        <div class="stat-label">The average time it takes for a person experiencing chronic work stress to seek support or make a change — often after a significant health event or personal crisis forces the issue.</div>
+      </div>
+      <div class="highlight-box">
+        <strong>The irony:</strong> The very resources that would help Alex recover — rest, social connection, exercise, pleasure — are the first to be eliminated when demands increase. The deficit compounds itself.
+      </div>
+    `
+  },
+  {
+    tag: 'emp',
+    number: '10 / Cynicism & Detachment',
+    headline: 'When meaning <em class="emp-color">drains away</em>',
+    body: `
+      <p>Alex joined this organisation because the work mattered. There was a genuine sense of purpose. Now that feeling is distant — almost unrecognisable.</p>
+      <p>This is the hallmark of burnout: emotional exhaustion accompanied by depersonalisation. The work that once energised now feels performative. Alex goes through the motions.</p>
+      <p>Colleagues who once seemed like teammates now feel like sources of additional load. The organisation that once felt like a community feels like a machine.</p>
+    `,
+    visual: `
+      <div class="quote-card">
+        "I don't know when I stopped caring. I just know I did. And I feel guilty about it constantly."
+        <span class="quote-attr">— Alex, speaking to a friend outside work</span>
+      </div>
+    `
+  },
+  {
+    tag: 'emp',
+    number: '11 / The Breaking Point',
+    headline: 'When the body <em class="emp-color">says no</em>',
+    body: `
+      <p>It happens on a Tuesday. Ordinary. A project review that runs long. Alex is presenting when a wave of dissociation arrives — a strange detachment, racing heart, tunnel vision.</p>
+      <p>Alex excuses themself. Sits in a bathroom stall for eleven minutes. Breathes. Returns. Finishes the meeting. Tells no one.</p>
+      <p>This is the body issuing its final notice. The system has exceeded its limits. Something must change — and the question becomes whether that change comes from within or is imposed from outside.</p>
+    `,
+    visual: `
+      <div class="warning-box" style="color:var(--text-dim);">
+        <span style="color:var(--emp-primary); font-weight:500;">Panic and anxiety at work</span> affect approximately <strong style="color:var(--text);">1 in 6 workers</strong> in any given week. They are rarely disclosed to managers — fear of being seen as weak, incapable, or a liability is pervasive.
+      </div>
+      <div class="stress-meter">
+        <div class="stress-meter-label">Cumulative stress load — breaking point</div>
+        <div class="stress-track">
+          <div class="stress-fill" id="stress-fill-2" style="width:0%; background: linear-gradient(90deg, #F4A261, #E85D4A, #c0392b);"></div>
+        </div>
+        <div class="stress-labels"><span>Manageable</span><span>Crisis</span></div>
+      </div>
+    `
+  },
+  {
+    tag: 'emp',
+    number: '12 / What Alex Needed',
+    headline: 'The gap between <em class="emp-color">needing</em> and asking',
+    body: `
+      <p>Alex needed several things. None of them were unreasonable. Most of them were never asked for.</p>
+      <p>The barriers to asking were multiple: fear of being judged as unable to cope, concern about career implications, the culture of overwork that had normalised unsustainable conditions, and simply not knowing that support was available.</p>
+    `,
+    visual: `
+      <div class="check-list emp">
+        <li>A conversation where it was safe to say "I'm struggling"</li>
+        <li>A temporary reduction in project load, without stigma</li>
+        <li>Clarity on what was genuinely urgent versus what could wait</li>
+        <li>Access to counselling through the Employee Assistance Programme</li>
+        <li>A manager who noticed the pattern before it escalated</li>
+      </ul>
+    `
+  },
+  {
+    tag: 'emp',
+    number: '13 / The Reckoning',
+    headline: 'What <em class="emp-color">could have</em> been different',
+    body: `
+      <p>Alex eventually took two weeks of sick leave. It wasn't the plan. A GP appointment, a frank conversation, a recommendation to step back. The team managed. The world did not end.</p>
+      <p>Looking back, the signals were clear — clear to Alex in retrospect, potentially visible to someone paying attention. The question that lingers is not "why didn't Alex speak up?" but "why did the environment make speaking up feel impossible?"</p>
+    `,
+    visual: `
+      <div class="highlight-box">
+        <strong>The systemic question:</strong> Individual resilience is often cited as the solution to workplace stress. But resilience has limits. When the environment generates demands that consistently exceed human capacity, the solution must be systemic, not individual.
+      </div>
+      <div class="stat-card emp">
+        <div class="stat-number">£56bn</div>
+        <div class="stat-label">The annual cost of poor mental health to UK employers — through presenteeism, absenteeism, and staff turnover. Most of it preventable with earlier intervention.</div>
+      </div>
+    `
+  },
+  {
+    tag: 'emp',
+    number: '14 / You Are Not Alone',
+    headline: 'If this story <em class="emp-color">resonates</em>',
+    body: `
+      <p>Alex's story is not unusual. The details differ, but the arc — the gradual accumulation, the signals ignored, the eventual crisis — is familiar to an extraordinary number of people in high-demand roles.</p>
+      <p>The most important thing to know is this: what you are experiencing has a name. It has causes that are not your fault. It has interventions that work. And speaking up — to a manager, to a GP, to a colleague — is not weakness. It is the beginning of recovery.</p>
+    `,
+    visual: `
+      <div class="resources-grid">
+        <div class="resource-item"><strong>At work</strong>Your Employee Assistance Programme (EAP) — ask HR for access. Usually free, confidential counselling.</div>
+        <div class="resource-item"><strong>Your GP</strong>Stress and burnout are medical concerns. A GP can provide sick notes, referrals, and support.</div>
+        <div class="resource-item"><strong>Mind UK</strong>mind.org.uk — workplace mental health resources, helplines, and community.</div>
+        <div class="resource-item"><strong>Samaritans</strong>Call 116 123. Free, 24/7. For any moment that feels too much to hold alone.</div>
+      </div>
+      <div class="quote-card">
+        "The strongest thing I ever did was admit I wasn't coping. Everything that helped me came after that."
+        <span class="quote-attr">— A research participant, speaking about their recovery</span>
+      </div>
+    `,
+    isFinal: true
+  }
+];
+
+const MANAGER_SCENES = [
+  {
+    tag: 'mgr',
+    number: '01 / Introduction',
+    headline: 'Meet <em class="mgr-color">Sam</em>',
+    body: `
+      <p>Sam manages a team of eight at the same technology consultancy. Competent, well-regarded, under their own considerable pressures. The kind of manager who believes in giving people autonomy.</p>
+      <p>Sam isn't the villain of this story. Sam is a good person who, for a long time, didn't see what was happening right in front of them — because no one had taught them what to look for.</p>
+      <p>This is the story of how Sam learned to manage differently.</p>
+    `,
+    visual: `
+      <div class="stat-card mgr">
+        <div class="stat-number">58%</div>
+        <div class="stat-label">of managers report they have never received training on recognising mental health concerns in their team. Noticing is a skill. It must be learned.</div>
+      </div>
+    `
+  },
+  {
+    tag: 'mgr',
+    number: '02 / What Sam Missed',
+    headline: 'The signs that were <em class="mgr-color">hiding in plain sight</em>',
+    body: `
+      <p>Sam was busy. The team was delivering — mostly. Individual signals were easy to attribute to personality, to life outside work, to "just a phase." Sam made these attributions and moved on.</p>
+      <p>The pattern recognition required to see chronic stress in a team member is not instinctive. It requires attention, a baseline to compare against, and the willingness to ask uncomfortable questions.</p>
+    `,
+    visual: `
+      <div class="check-list mgr">
+        <li>Alex's meeting tardiness (attributed to "being busy")</li>
+        <li>Shorter, snappier emails (attributed to "communication style")</li>
+        <li>Declining social participation (attributed to introversion)</li>
+        <li>Missed deadline on the Morrison account (attributed to "one-off")</li>
+        <li>Visible fatigue in morning calls (attributed to "not a morning person")</li>
+      </ul>
+      <div class="aside-note">Each explanation felt plausible in isolation. Together, they told a story Sam wasn't reading.</div>
+    `
+  },
+  {
+    tag: 'mgr',
+    number: '03 / Learning to Notice',
+    headline: 'Developing a <em class="mgr-color">baseline awareness</em>',
+    body: `
+      <p>The first shift for Sam came through a team manager development session on psychological health at work. The concept that landed was simple but transformative: <strong>know your people's baseline</strong>.</p>
+      <p>You cannot spot a change if you don't know what's normal. For each team member, Sam began paying attention to: their typical energy level, communication style, engagement in meetings, and the quality of their work.</p>
+    `,
+    visual: `
+      <div class="intervention-grid">
+        <div class="intervention-item"><strong>Track attendance patterns</strong>Late arrivals or absences clustered near deadlines can signal struggle</div>
+        <div class="intervention-item"><strong>Monitor communication quality</strong>Tone and response time shift when someone is overwhelmed</div>
+        <div class="intervention-item"><strong>Notice engagement changes</strong>Quiet where there was once contribution</div>
+        <div class="intervention-item"><strong>Watch output quality</strong>Uncharacteristic errors or incomplete work</div>
+      </div>
+    `
+  },
+  {
+    tag: 'mgr',
+    number: '04 / The Check-in',
+    headline: 'A different kind of <em class="mgr-color">conversation</em>',
+    body: `
+      <p>Sam decides to have a one-to-one with Alex that isn't about project status. Not "how is the Morrison account going" — but "how are <em>you</em> going."</p>
+      <p>This seems obvious. It is harder than it sounds. Sam had to resist filling silences, resist jumping to problem-solving, resist making it about work. The conversation required holding space for an answer that might be uncomfortable.</p>
+    `,
+    visual: `
+      <div class="quote-card">
+        "I noticed you've seemed a bit stretched lately — and I wanted to check in properly. Not about the work. How are you actually doing?"
+        <span class="quote-attr">— Sam, opening the conversation</span>
+      </div>
+      <div class="highlight-box">
+        <strong>Research insight:</strong> Employees are significantly more likely to disclose stress when a manager opens the conversation. Waiting for employees to come forward first is a structural barrier — most never will without an explicit invitation.
+      </div>
+    `
+  },
+  {
+    tag: 'mgr',
+    number: '05 / Psychological Safety',
+    headline: 'Creating the conditions for <em class="mgr-color">honesty</em>',
+    body: `
+      <p>Sam learned that the check-in was only as effective as the environment around it. If Alex believed disclosure would trigger negative career consequences, the question would be deflected regardless of how sincerely it was asked.</p>
+      <p>Psychological safety isn't a single conversation. It's a pattern of behaviours — how Sam responds to mistakes, whether vulnerability is ever modelled at a senior level, whether people who raise concerns are supported or quietly sidelined.</p>
+    `,
+    visual: `
+      <div class="intervention-grid">
+        <div class="intervention-item"><strong>Model vulnerability</strong>Share your own experience of pressure; normalise the conversation</div>
+        <div class="intervention-item"><strong>Respond without judgement</strong>What you say immediately after disclosure sets the tone permanently</div>
+        <div class="intervention-item"><strong>Separate performance from support</strong>Make clear that asking for help has no bearing on career assessment</div>
+        <div class="intervention-item"><strong>Follow through</strong>Every commitment made must be kept — trust is built on consistency</div>
+      </div>
+    `
+  },
+  {
+    tag: 'mgr',
+    number: '06 / The Conversation That Mattered',
+    headline: 'Alex finally <em class="mgr-color">speaks</em>',
+    body: `
+      <p>In the third check-in meeting — not the first, and not with full disclosure — Alex says something close to the truth: "I think I've been taking on too much. I'm not sure I'm managing it well."</p>
+      <p>This is not a crisis disclosure. It's a test — a small offer of truth extended to see how it's received. Sam's response to this moment determined everything that followed.</p>
+    `,
+    visual: `
+      <div class="quote-card">
+        "Thank you for telling me that. It takes something to say it. Let's figure out what we can adjust — there's no reason you should be carrying this alone."
+        <span class="quote-attr">— Sam's response. It was the right one.</span>
+      </div>
+      <div class="stat-card mgr">
+        <div class="stat-number">3×</div>
+        <div class="stat-label">Employees are three times more likely to seek support when their manager responds to initial disclosure with empathy rather than problem-solving. The response in that first moment is critical.</div>
+      </div>
+    `
+  },
+  {
+    tag: 'mgr',
+    number: '07 / Workload Review',
+    headline: 'Auditing what is actually <em class="mgr-color">possible</em>',
+    body: `
+      <p>Sam sits down with Alex to map out all current commitments. Not to judge, but to understand. What is genuinely urgent? What could be delayed? What could be redistributed or deprioritised?</p>
+      <p>The exercise reveals something uncomfortable: the current allocation is objectively unsustainable. This is not a problem Alex created. It is a problem the system created. Sam owns some responsibility for that.</p>
+    `,
+    visual: `
+      <div class="intervention-grid">
+        <div class="intervention-item"><strong>Visible workload mapping</strong>Put everything on paper — what's real vs. assumed urgency</div>
+        <div class="intervention-item"><strong>Distinguish urgent from important</strong>Not all demands are equal; many can be renegotiated</div>
+        <div class="intervention-item"><strong>Redistribute equitably</strong>Adjust the team load — don't just move the problem</div>
+        <div class="intervention-item"><strong>Buy time where possible</strong>Push back on stakeholders on behalf of the team</div>
+      </div>
+      <div class="highlight-box">
+        <strong>The manager's leverage:</strong> Employees rarely feel empowered to push back on deadlines or volume. Managers can do this on their team's behalf — and should. Shielding the team from excessive demand is a core management function.
+      </div>
+    `
+  },
+  {
+    tag: 'mgr',
+    number: '08 / Connecting to Resources',
+    headline: 'You don\'t have to be <em class="mgr-color">the therapist</em>',
+    body: `
+      <p>One thing Sam had to learn clearly: a manager's role in mental health support is not to provide therapy. It is to notice, to care, to adjust what is within their power — and to connect people to professional support when it's needed.</p>
+      <p>Sam tells Alex about the Employee Assistance Programme, sends the link, offers to speak to HR if there are barriers to access. These are small acts with significant consequences.</p>
+    `,
+    visual: `
+      <div class="intervention-grid">
+        <div class="intervention-item"><strong>Employee Assistance Programme</strong>Know what's in yours and proactively tell your team it exists</div>
+        <div class="intervention-item"><strong>Occupational Health</strong>A formal referral can unlock structured support and adjustments</div>
+        <div class="intervention-item"><strong>Mental health days</strong>Normalise using leave for psychological recovery, not just physical illness</div>
+        <div class="intervention-item"><strong>Flexible working</strong>Temporary adjustments to hours or location can reduce load meaningfully</div>
+      </div>
+    `
+  },
+  {
+    tag: 'mgr',
+    number: '09 / Structural Changes',
+    headline: 'Protecting the team <em class="mgr-color">systemically</em>',
+    body: `
+      <p>Beyond Alex, Sam begins examining the team environment more broadly. Are after-hours messages creating an implicit expectation of availability? Are meeting loads preventing deep work? Is the team's velocity actually sustainable?</p>
+      <p>Sam introduces some deliberate boundaries — not as rules, but as norms that are modelled from the top.</p>
+    `,
+    visual: `
+      <div class="check-list mgr">
+        <li>No team messages after 6pm — Sam stops sending them first</li>
+        <li>No-meeting Wednesdays introduced for focused work time</li>
+        <li>Team capacity reviewed monthly before new projects are accepted</li>
+        <li>Leave taken visibly by Sam to normalise recovery time</li>
+        <li>Recognition given for sustainable performance, not just heroic effort</li>
+      </ul>
+    `
+  },
+  {
+    tag: 'mgr',
+    number: '10 / Regular Support',
+    headline: 'Ongoing presence, not <em class="mgr-color">one-off rescue</em>',
+    body: `
+      <p>Sam commits to fortnightly one-to-ones with Alex — not project reviews, but genuine conversations. Progress is not linear. There are weeks when Alex is doing well and weeks when the old pressures resurface.</p>
+      <p>The consistency of contact matters more than any single intervention. It signals: I see you. I'm paying attention. You don't have to wait until it's a crisis to talk to me.</p>
+    `,
+    visual: `
+      <div class="quote-card">
+        "Having someone check in regularly — not because something's wrong, but just as a practice — changed how I experienced work. I wasn't invisible anymore."
+        <span class="quote-attr">— Research participant describing the impact of consistent manager support</span>
+      </div>
+    `
+  },
+  {
+    tag: 'mgr',
+    number: '11 / Role Modelling',
+    headline: 'Culture is what you <em class="mgr-color">demonstrate</em>',
+    body: `
+      <p>Sam begins to understand something uncomfortable: the culture of overwork in the team was partly maintained by Sam's own behaviour. The late emails, the weekend availability, the self-deprecating references to "burning the midnight oil."</p>
+      <p>Psychological safety and sustainable work culture cannot be created by policy alone. They require consistent demonstration from people with power. Sam's visible behaviour became the team's permission structure.</p>
+    `,
+    visual: `
+      <div class="intervention-grid">
+        <div class="intervention-item"><strong>Take your holidays fully</strong>Don't check in. Don't send messages. Make recovery visible.</div>
+        <div class="intervention-item"><strong>Acknowledge mistakes openly</strong>Model fallibility — it reduces the shame around not coping</div>
+        <div class="intervention-item"><strong>Set visible boundaries</strong>Close your laptop. Leave on time. Make these unremarkable.</div>
+        <div class="intervention-item"><strong>Name the pressure</strong>"I know this is a heavy period" — acknowledgement alone reduces burden</div>
+      </div>
+    `
+  },
+  {
+    tag: 'mgr',
+    number: '12 / Advocacy Upward',
+    headline: 'The manager as <em class="mgr-color">buffer and voice</em>',
+    body: `
+      <p>Sam cannot solve organisational-level demand alone. But Sam can do two things: buffer the team from unreasonable load where possible, and advocate upward for systemic change.</p>
+      <p>This means taking data to leadership — turnover figures, sick leave trends, capacity versus pipeline — and naming the connection explicitly. High demands without investment in people is not a sustainable model. Someone has to say it.</p>
+    `,
+    visual: `
+      <div class="stat-card mgr">
+        <div class="stat-number">4:1</div>
+        <div class="stat-label">The return on investment for every £1 spent on employee mental health support. Prevention and early intervention are dramatically cheaper than turnover, recruitment, and long-term absence.</div>
+      </div>
+      <div class="highlight-box">
+        <strong>For leadership:</strong> Managers who advocate for their teams are not being difficult. They are protecting one of the organisation's most valuable assets. The most effective organisations create formal mechanisms for this feedback to travel upward.
+      </div>
+    `
+  },
+  {
+    tag: 'mgr',
+    number: '13 / The Difference It Made',
+    headline: 'Alex, <em class="mgr-color">six months later</em>',
+    body: `
+      <p>Alex is still at the organisation. Returned from leave. Working at a recalibrated level — not diminished, but human. The work is still demanding. But the relationship with work has shifted: Alex knows now that struggling doesn't have to be hidden.</p>
+      <p>This outcome wasn't guaranteed. It depended on a manager willing to learn to see, willing to create space, willing to make some structural changes that cost time but saved something more valuable.</p>
+    `,
+    visual: `
+      <div class="quote-card">
+        "I nearly left. I had the resignation letter drafted. What changed wasn't the work — it was knowing that someone was actually paying attention to whether I was okay."
+        <span class="quote-attr">— Alex, speaking to Sam six months after the first real check-in</span>
+      </div>
+    `
+  },
+  {
+    tag: 'mgr',
+    number: '14 / What Every Manager Can Do',
+    headline: 'The <em class="mgr-color">practical</em> starting point',
+    body: `
+      <p>You don't need specialist training to begin. You need intention, attention, and a willingness to have conversations that are sometimes uncomfortable.</p>
+      <p>The actions below are within reach for every manager in every organisation. They are not sufficient on their own to fix systemic problems — but they are the difference between a team member who barely holds on and one who actually recovers.</p>
+    `,
+    visual: `
+      <div class="check-list mgr">
+        <li>Schedule fortnightly one-to-ones that genuinely aren't about task status</li>
+        <li>Learn your team's baseline — so you can spot when someone has shifted from it</li>
+        <li>Know what wellbeing support exists in your organisation and tell your team</li>
+        <li>Review workload allocation at least monthly — not just quality of output</li>
+        <li>Model boundaries visibly: leave on time, take holidays fully</li>
+        <li>When someone discloses — listen first, solve second</li>
+        <li>Advocate upward: your team's sustainability is a leadership conversation</li>
+      </ul>
+      <div class="resources-grid" style="margin-top:24px;">
+        <div class="resource-item"><strong>CIPD</strong>cipd.org — People Management resources on psychological health at work</div>
+        <div class="resource-item"><strong>Mind for Employers</strong>mind.org.uk/workplace — Manager mental health training and resources</div>
+        <div class="resource-item"><strong>HSE</strong>hse.gov.uk/stress — Legal framework and management standards for work-related stress</div>
+        <div class="resource-item"><strong>Thriving at Work</strong>The Stevenson/Farmer Review — evidence base for employer action</div>
+      </div>
+    `,
+    isFinal: true
+  }
+];
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+
+let currentPath = 'employee';
+let currentIndex = 0;
+let scenes = EMPLOYEE_SCENES;
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+
+function startJourney(path) {
+  currentPath = path;
+  currentIndex = 0;
+  scenes = path === 'employee' ? EMPLOYEE_SCENES : MANAGER_SCENES;
+
+  document.getElementById('landing').style.display = 'none';
+  document.getElementById('story').classList.add('active');
+
+  updateUI();
+  renderScenes();
+  showScene(0);
+}
+
+function goHome() {
+  document.getElementById('story').classList.remove('active');
+  document.getElementById('landing').style.display = 'flex';
+  document.getElementById('scene-container').innerHTML = '';
+}
+
+function switchPath() {
+  currentPath = currentPath === 'employee' ? 'manager' : 'employee';
+  scenes = currentPath === 'employee' ? EMPLOYEE_SCENES : MANAGER_SCENES;
+  currentIndex = 0;
+  updateUI();
+  renderScenes();
+  showScene(0);
+}
+
+// ══════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════
+
+function renderScenes() {
+  const container = document.getElementById('scene-container');
+  container.innerHTML = '';
+
+  scenes.forEach((scene, i) => {
+    const div = document.createElement('div');
+    div.className = 'scene';
+    div.id = `scene-${i}`;
+    div.innerHTML = buildSceneHTML(scene, i);
+    container.appendChild(div);
+  });
+
+  buildDots();
+}
+
+function buildSceneHTML(scene, i) {
+  const isFinal = scene.isFinal;
+  const isEmp = scene.tag === 'emp';
+
+  return `
+    <div class="scene-number">${scene.number}</div>
+    <span class="scene-tag ${isEmp ? 'emp-tag' : 'mgr-tag'}">${isEmp ? "Alex's path" : "Sam's path"}</span>
+    <h2 class="scene-headline">${scene.headline}</h2>
+    <div class="scene-body">${scene.body}</div>
+    ${scene.visual || ''}
+    ${isFinal ? `
+      <div style="margin-top:40px; padding-top:28px; border-top: 1px solid var(--border); text-align:center;">
+        <p style="color:var(--text-dim); font-size:0.85rem; margin-bottom:16px; font-family:'DM Mono',monospace; letter-spacing:0.1em; text-transform:uppercase;">End of ${isEmp ? 'Alex' : 'Sam'}'s path</p>
+        <button class="restart-btn" onclick="switchPath()">Read the ${isEmp ? 'manager' : 'employee'} path →</button>
+      </div>
+    ` : ''}
+  `;
+}
+
+function buildDots() {
+  const dots = document.getElementById('nav-dots');
+  dots.innerHTML = '';
+  const max = Math.min(scenes.length, 14);
+  for (let i = 0; i < max; i++) {
+    const d = document.createElement('div');
+    d.className = 'nav-dot' + (i === currentIndex ? ' active' : '');
+    d.onclick = () => { currentIndex = i; showScene(i); };
+    dots.appendChild(d);
+  }
+}
+
+// ══════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════
+
+function showScene(index) {
+  document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
+  const target = document.getElementById(`scene-${index}`);
+  if (target) {
+    target.classList.add('active');
+    // Scroll to top of scene container
+    document.getElementById('scene-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  currentIndex = index;
+  updateProgress();
+  updateButtons();
+  updateDots();
+  triggerSceneAnimations(index);
+}
+
+function navigate(dir) {
+  const next = currentIndex + dir;
+  if (next >= 0 && next < scenes.length) {
+    showScene(next);
+  }
+}
+
+function updateProgress() {
+  const pct = ((currentIndex + 1) / scenes.length) * 100;
+  const fill = document.getElementById('progress-fill');
+  const color = currentPath === 'employee' ? 'var(--emp-primary)' : 'var(--mgr-primary)';
+  fill.style.width = pct + '%';
+  fill.style.background = color;
+
+  document.getElementById('current-scene-num').textContent = currentIndex + 1;
+  document.getElementById('total-scenes').textContent = scenes.length;
+}
+
+function updateButtons() {
+  document.getElementById('prev-btn').disabled = currentIndex === 0;
+  const nextBtn = document.getElementById('next-btn');
+  nextBtn.textContent = currentIndex === scenes.length - 1 ? 'Restart ↺' : 'Next →';
+  if (currentIndex === scenes.length - 1) {
+    nextBtn.onclick = () => { currentIndex = 0; showScene(0); };
+  } else {
+    nextBtn.onclick = () => navigate(1);
+  }
+}
+
+function updateDots() {
+  document.querySelectorAll('.nav-dot').forEach((d, i) => {
+    d.classList.toggle('active', i === currentIndex);
+  });
+}
+
+function updateUI() {
+  const isEmp = currentPath === 'employee';
+  document.getElementById('topbar-title').textContent = isEmp ? "Alex's Journey" : "Sam's Journey";
+  const switchBtn = document.getElementById('switch-btn');
+  switchBtn.textContent = isEmp ? 'Switch to Sam →' : 'Switch to Alex →';
+  switchBtn.className = 'switch-path-btn ' + (isEmp ? 'to-manager' : 'to-employee');
+}
+
+// ══════════════════════════════════════════
+// SCENE ANIMATIONS
+// ══════════════════════════════════════════
+
+function triggerSceneAnimations(index) {
+  const scene = scenes[index];
+
+  // Overwhelm viz
+  const ov = document.getElementById('overwhelm-viz');
+  if (ov && index === 1) {
+    const tasks = [
+      'Q4 Report', 'Morrison Deck', 'Team Reviews', 'Budget Sign-off',
+      'Client Call x3', 'Roadmap Update', 'Stakeholder Comms', 'Risk Register',
+      'Sprint Planning', 'Onboarding', 'Process Docs', 'OKR Review',
+      'Vendor Meeting', 'Comms Strategy', 'All-Hands Prep', 'Resource Plan'
+    ];
+    ov.innerHTML = '';
+    tasks.forEach((t, i) => {
+      const span = document.createElement('span');
+      span.className = 'overwhelm-item';
+      span.textContent = t;
+      span.style.animationDelay = (i * 0.08) + 's';
+      ov.appendChild(span);
+    });
+  }
+
+  // Stress meters
+  setTimeout(() => {
+    const sf1 = document.getElementById('stress-fill-1');
+    if (sf1) sf1.style.width = '74%';
+    const sf2 = document.getElementById('stress-fill-2');
+    if (sf2) sf2.style.width = '97%';
+  }, 400);
+}
+
+// ══════════════════════════════════════════
+// KEYBOARD NAVIGATION
+// ══════════════════════════════════════════
+
+document.addEventListener('keydown', (e) => {
+  if (document.getElementById('story').classList.contains('active')) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') navigate(1);
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') navigate(-1);
+  }
+});
+</script>
+</body>
+</html>
