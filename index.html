@@ -451,6 +451,70 @@ body::before {
 #scroll-hint { transition: opacity 0.5s; }
 #scroll-hint.hidden { opacity: 0 !important; pointer-events: none; }
 
+/* ══ CITATION SUPERSCRIPTS ══ */
+.ref-sup {
+  font-family: 'DM Mono', monospace; font-size: 9px;
+  color: var(--gold); cursor: pointer; vertical-align: super;
+  line-height: 0; margin-left: 1px; opacity: 0.75;
+  transition: opacity 0.15s;
+  text-decoration: none;
+}
+.ref-sup:hover { opacity: 1; }
+
+/* ══ REFERENCES PANEL ══ */
+#refs-panel {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: rgba(10,10,18,0.97); backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border);
+  z-index: 200; transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.22,1,0.36,1);
+  max-height: 60vh; overflow-y: auto;
+}
+#refs-panel.open { transform: translateY(0); }
+.refs-panel-inner {
+  max-width: 820px; margin: 0 auto; padding: 28px 32px 36px;
+}
+.refs-panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px;
+}
+.refs-panel-title {
+  font-family: 'DM Mono', monospace; font-size: 10px;
+  letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold);
+}
+.refs-close-btn {
+  background: none; border: 1px solid var(--border); color: var(--text-dim);
+  padding: 4px 12px; font-family: 'DM Mono', monospace; font-size: 10px;
+  letter-spacing: 0.1em; cursor: pointer; border-radius: 2px; transition: all 0.2s;
+}
+.refs-close-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+.refs-list { list-style: none; }
+.refs-list li {
+  padding: 10px 0 10px 28px; position: relative;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.8rem; line-height: 1.6; color: var(--text-dim);
+}
+.refs-list li:last-child { border-bottom: none; }
+.refs-list .ref-num {
+  position: absolute; left: 0; top: 11px;
+  font-family: 'DM Mono', monospace; font-size: 9px;
+  color: var(--gold); font-weight: bold;
+}
+.refs-list a { color: var(--text-dim); text-decoration: underline; text-decoration-color: rgba(255,255,255,0.1); }
+.refs-list a:hover { color: var(--text); }
+
+/* ══ REFS TOGGLE BUTTON ══ */
+#refs-toggle-btn {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: rgba(12,12,20,0.88); backdrop-filter: blur(8px);
+  border: 1px solid rgba(201,168,76,0.35); color: var(--gold);
+  font-family: 'DM Mono', monospace; font-size: 9.5px; letter-spacing: 0.15em;
+  text-transform: uppercase; padding: 7px 18px; cursor: pointer; border-radius: 2px;
+  z-index: 100; transition: all 0.2s; display: none;
+}
+#refs-toggle-btn.visible { display: block; }
+#refs-toggle-btn:hover { background: rgba(201,168,76,0.1); border-color: var(--gold); }
+
 /* ══ RESPONSIVE ══ */
 @media (max-width: 768px) {
   :root { --panel-w: 0px; }
@@ -584,6 +648,29 @@ body::before {
   <div class="scroll-hint-arrow">↓</div>
 </div>
 
+<!-- References toggle button -->
+<button id="refs-toggle-btn" onclick="toggleRefs()">References ↑</button>
+
+<!-- References panel -->
+<div id="refs-panel" role="dialog" aria-label="References">
+  <div class="refs-panel-inner">
+    <div class="refs-panel-header">
+      <span class="refs-panel-title">Sources &amp; References</span>
+      <button class="refs-close-btn" onclick="toggleRefs()">Close ✕</button>
+    </div>
+    <ol class="refs-list">
+      <li><span class="ref-num">[1]</span> Information Age / ACS (2024). <em>Burnout at 'alarming levels' in Australia, report finds.</em> Cited statistic: 61% of Australian workers report experiencing burnout, above the global average of 48%. <a href="https://ia.acs.org.au/article/2024/burnout-at-alarming-levels-in-australia-report-finds.html" target="_blank" rel="noopener">ia.acs.org.au</a></li>
+      <li><span class="ref-num">[2]</span> Laukka, E.J., et al. (2022). <em>The effects of stress across the lifespan on the brain, cognition and mental health: A UK Biobank study.</em> PMC / Cambridge University Press. Individuals with high stress levels were 37% more likely to show poor cognitive performance. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9170771/" target="_blank" rel="noopener">pmc.ncbi.nlm.nih.gov</a></li>
+      <li><span class="ref-num">[3]</span> PricewaterhouseCoopers &amp; Beyond Blue (2014). <em>Creating a Mentally Healthy Workplace: Return on Investment Analysis.</em> Key findings: untreated mental health conditions cost Australian workplaces $10.9B/year; every $1 invested returns $2.30 in benefits. <a href="https://www.pwc.com.au/publications/pdf/beyondblue-workplace-roi-may14.pdf" target="_blank" rel="noopener">pwc.com.au</a></li>
+      <li><span class="ref-num">[4]</span> McGorry, P.D., et al. (2025). Published in <em>Cambridge Journal of Epidemiology and Psychiatric Sciences.</em> University of Sydney analysis of ABS 2020–22 National Study of Mental Health and Wellbeing: Australians wait an average of 12 years before seeking treatment for mental health conditions. <a href="https://www.sydney.edu.au/news-opinion/news/2025/02/18/australians-are-waiting-12-years-on-average-before-seeking-help-.html" target="_blank" rel="noopener">sydney.edu.au</a></li>
+      <li><span class="ref-num">[5]</span> Beyond Blue &amp; Comcare (ongoing). <em>Work and Mental Health.</em> At any given time, 1 in 5 Australian workers are experiencing a mental health condition. <a href="https://www.beyondblue.org.au/mental-health/work" target="_blank" rel="noopener">beyondblue.org.au</a>; <a href="https://www.comcare.gov.au/safe-healthy-work/mentally-healthy-workplaces" target="_blank" rel="noopener">comcare.gov.au</a></li>
+      <li><span class="ref-num">[6]</span> TNS Social Research &amp; Beyond Blue (2014). <em>State of Workplace Mental Health in Australia.</em> 41% of Australian workers believe their managers and colleagues lack the skills to have conversations about mental health appropriately. <a href="https://www.qhrc.qld.gov.au/__data/assets/pdf_file/0012/20145/TNS-report.pdf" target="_blank" rel="noopener">beyondblue.org.au / qhrc.qld.gov.au</a></li>
+      <li><span class="ref-num">[7]</span> Safe Work Australia (2022). <em>Psychosocial safety climate and better productivity in Australian workplaces.</em> Improving psychosocial safety can reduce sickness absence by 43% and presenteeism by 72%. <a href="https://www.safeworkaustralia.gov.au/resources-and-publications/reports/psychosocial-safety-climate-and-better-productivity-australian-workplaces-costs-productivity-presenteeism-absenteeism" target="_blank" rel="noopener">safeworkaustralia.gov.au</a></li>
+      <li><span class="ref-num">[8]</span> Productivity Commission (2020). <em>Mental Health Inquiry Report.</em> Poor mental health and suicide costs Australia's economy $200–220 billion per year — approximately one-tenth of Australia's economic output. <a href="https://www.pc.gov.au/inquiries/completed/mental-health/report" target="_blank" rel="noopener">pc.gov.au</a></li>
+    </ol>
+  </div>
+</div>
+
 <script>
 // ══════════════════════════════════
 // SCENE DATA
@@ -594,7 +681,7 @@ const EMPLOYEE_SCENES = [
     body:`<p>Alex is a mid-level project coordinator at a fast-growing technology consultancy. Smart, conscientious, genuinely committed. Two promotions in four years. The kind of person who always says yes.</p>
 <p>The company is ambitious. Targets are aggressive. Headcount hasn't kept pace with the pipeline. And Alex — like so many others — has quietly absorbed the overflow.</p>
 <p>This is the story of what happened next.</p>`,
-    visual:`<div class="stat-card emp"><div class="stat-number">72%</div><div class="stat-label">of employees in high-demand roles report feeling unable to switch off from work. Alex is one of them.</div></div>` },
+    visual:`<div class="stat-card emp"><div class="stat-number">61%</div><div class="stat-label">of Australian workers report experiencing burnout — well above the global average of 48%. Alex is one of them.<a href="#" class="ref-sup" onclick="openRef(event,1)">[1]</a></div></div>` },
 
   { number:'02 / The Environment', headline:'A culture of <em class="emp-color">always-on</em>',
     body:`<p>High job demands don't arrive in a single moment. They accumulate. More clients than capacity. Meetings that fill every slot. Deadlines that overlap. A culture where availability is worn as a badge of honour.</p>
@@ -631,7 +718,7 @@ const EMPLOYEE_SCENES = [
   { number:'05 / Cognitive Overload', headline:'The mind starts <em class="emp-color">fragmenting</em>',
     body:`<p>Cognitive load has a ceiling. Alex is operating above it. Concentration fractures. Simple tasks require disproportionate effort. A report that once took an hour now takes three.</p>
 <p>Alex forgets a client call. Then a team meeting. Sends an email to the wrong person. These are not character flaws — they are the predictable output of an overloaded system.</p>`,
-    visual:`<div class="stat-card emp"><div class="stat-number">40%</div><div class="stat-label">reduction in cognitive performance has been measured in individuals experiencing chronic high-demand work stress. Errors become inevitable, not exceptional.</div></div>
+    visual:`<div class="stat-card emp"><div class="stat-number">37%</div><div class="stat-label">more likely to show poor cognitive performance — the measurable outcome for individuals experiencing chronic high-demand stress. Errors become inevitable, not exceptional.<a href="#" class="ref-sup" onclick="openRef(event,2)">[2]</a></div></div>
 <div class="highlight-box"><strong>Research finding:</strong> When cognitive resources are depleted, the brain prioritises immediate threat response over complex reasoning. Strategic thinking is the first thing to go.</div>` },
 
   { number:'06 / The Emotional Shift', headline:'Irritability, then <em class="emp-color">withdrawal</em>',
@@ -653,7 +740,7 @@ const EMPLOYEE_SCENES = [
 <div class="mini-card"><div class="mini-card-label" style="color:var(--emp-primary)">Hours worked</div><div class="mini-card-value" style="color:var(--emp-primary)">↑ 44%</div><div class="mini-card-desc">compared to 18 months prior</div></div>
 <div class="mini-card"><div class="mini-card-label" style="color:var(--emp-primary)">Output quality</div><div class="mini-card-value" style="color:var(--emp-primary)">↓ 31%</div><div class="mini-card-desc">based on manager assessments</div></div>
 </div>
-<div class="warning-box" style="color:var(--text-dim)"><span style="color:var(--emp-primary);font-weight:500">The productivity trap:</span> Presenteeism costs UK employers an estimated <strong style="color:var(--text)">£15.1 billion annually</strong>. Most of it is preventable.</div>` },
+<div class="warning-box" style="color:var(--text-dim)"><span style="color:var(--emp-primary);font-weight:500">The productivity trap:</span> Presenteeism and absenteeism cost Australian employers an estimated <strong style="color:var(--text)">$10.9 billion per year</strong> — $6.1B from presenteeism alone. Most of it is preventable.<a href="#" class="ref-sup" onclick="openRef(event,3)">[3]</a></div>` },
 
   { number:'08 / How It Manifests', headline:'What high demands <em class="emp-color">look like</em> at work',
     body:`<p>High job demands don't announce themselves. They surface in patterns — in behaviour, in output, in the small moments that accumulate into a picture no single person sees fully.</p>
@@ -673,7 +760,7 @@ const EMPLOYEE_SCENES = [
   { number:'09 / The Hidden Cost', headline:'What Alex stopped <em class="emp-color">doing</em>',
     body:`<p>Chronic high demand doesn't just add things — it subtracts them. The activities that sustain a person are the first to be traded away in the name of catching up.</p>
 <p>Alex stopped going to the gym. Stopped meeting friends for dinner. Stopped reading for pleasure. Stopped cooking at home. Each sacrifice felt temporary. None of them were.</p>`,
-    visual:`<div class="stat-card emp"><div class="stat-number">18 mo.</div><div class="stat-label">The average time it takes for a person experiencing chronic work stress to seek support — often after a significant health event forces the issue.</div></div>
+    visual:`<div class="stat-card emp"><div class="stat-number">12 yrs</div><div class="stat-label">The average time Australians wait before seeking treatment for a mental health condition — often after a significant event forces the issue.<a href="#" class="ref-sup" onclick="openRef(event,4)">[4]</a></div></div>
 <div class="highlight-box"><strong>The irony:</strong> The very resources that would help Alex recover — rest, social connection, exercise, pleasure — are the first to be eliminated when demands increase. The deficit compounds itself.</div>` },
 
   { number:'10 / Cynicism & Detachment', headline:'When meaning <em class="emp-color">drains away</em>',
@@ -686,7 +773,7 @@ const EMPLOYEE_SCENES = [
     body:`<p>It happens on a Tuesday. Ordinary. A project review that runs long. Alex is presenting when a wave of dissociation arrives — a strange detachment, racing heart, tunnel vision.</p>
 <p>Alex excuses themself. Sits in a bathroom stall for eleven minutes. Breathes. Returns. Finishes the meeting. Tells no one.</p>
 <p>This is the body issuing its final notice. The system has exceeded its limits.</p>`,
-    visual:`<div class="warning-box" style="color:var(--text-dim)"><span style="color:var(--emp-primary);font-weight:500">Panic and anxiety at work</span> affect approximately <strong style="color:var(--text)">1 in 6 workers</strong> in any given week. They are rarely disclosed — fear of being seen as weak or a liability is pervasive.</div>
+    visual:`<div class="warning-box" style="color:var(--text-dim)"><span style="color:var(--emp-primary);font-weight:500">Mental health conditions at work</span> affect approximately <strong style="color:var(--text)">1 in 5 Australian workers</strong> at any given time. They are rarely disclosed — fear of being seen as weak or a liability is pervasive.<a href="#" class="ref-sup" onclick="openRef(event,5)">[5]</a></div>
 <div class="stress-meter"><div class="stress-meter-label">Cumulative stress load — breaking point</div><div class="stress-track"><div class="stress-fill" data-target="97" style="background:linear-gradient(90deg,#F4A261,#E85D4A,#c0392b)"></div></div><div class="stress-labels"><span>Manageable</span><span>Crisis</span></div></div>` },
 
   { number:'12 / What Alex Needed', headline:'The gap between <em class="emp-color">needing</em> and asking',
@@ -704,16 +791,16 @@ const EMPLOYEE_SCENES = [
     body:`<p>Alex eventually took two weeks of sick leave. A GP appointment, a frank conversation, a recommendation to step back. The team managed. The world did not end.</p>
 <p>Looking back, the signals were clear. The question that lingers is not "why didn't Alex speak up?" but "why did the environment make speaking up feel impossible?"</p>`,
     visual:`<div class="highlight-box"><strong>The systemic question:</strong> Individual resilience is often cited as the solution to workplace stress. But resilience has limits. When the environment generates demands that consistently exceed human capacity, the solution must be systemic, not individual.</div>
-<div class="stat-card emp"><div class="stat-number">£56bn</div><div class="stat-label">The annual cost of poor mental health to UK employers — through presenteeism, absenteeism, and staff turnover. Most of it preventable with earlier intervention.</div></div>` },
+<div class="stat-card emp"><div class="stat-number">$11bn</div><div class="stat-label">The annual cost of poor mental health to Australian businesses — through presenteeism, absenteeism, and compensation claims. Most of it preventable with earlier intervention.<a href="#" class="ref-sup" onclick="openRef(event,3)">[3]</a></div></div>` },
 
   { number:'14 / You Are Not Alone', headline:'If this story <em class="emp-color">resonates</em>',
     body:`<p>Alex's story is not unusual. The details differ, but the arc is familiar to an extraordinary number of people in high-demand roles.</p>
 <p>The most important thing to know is this: what you are experiencing has a name. It has causes that are not your fault. It has interventions that work. And speaking up is not weakness — it is the beginning of recovery.</p>`,
     visual:`<div class="resources-grid">
-<div class="resource-item"><strong>At work</strong>Your Employee Assistance Programme (EAP) — ask HR for access. Usually free, confidential counselling.</div>
-<div class="resource-item"><strong>Your GP</strong>Stress and burnout are medical concerns. A GP can provide sick notes, referrals, and support.</div>
-<div class="resource-item"><strong>Mind UK</strong>mind.org.uk — workplace mental health resources, helplines, and community.</div>
-<div class="resource-item"><strong>Samaritans</strong>Call 116 123. Free, 24/7. For any moment that feels too much to hold alone.</div>
+<div class="resource-item"><strong>At work</strong>Your Employee Assistance Programme (EAP) — ask HR for access. Free, confidential counselling available to all employees.</div>
+<div class="resource-item"><strong>Your GP</strong>Stress and burnout are medical concerns. A GP can provide a Mental Health Treatment Plan — up to 10 Medicare-subsidised psychology sessions per year.</div>
+<div class="resource-item"><strong>Beyond Blue</strong>Call 1300 22 4636 or visit beyondblue.org.au — 24/7 support for anxiety, depression, and burnout.</div>
+<div class="resource-item"><strong>Lifeline</strong>Call 13 11 14. Free, 24/7 crisis support. For any moment that feels too much to hold alone.</div>
 </div>
 <div class="quote-card">"The strongest thing I ever did was admit I wasn't coping. Everything that helped me came after that."<span class="quote-attr">— A research participant, speaking about their recovery</span></div>`,
     isFinal: true }
@@ -724,7 +811,7 @@ const MANAGER_SCENES = [
     body:`<p>Sam manages a team of eight at the same technology consultancy. Competent, well-regarded, under their own considerable pressures. The kind of manager who believes in giving people autonomy.</p>
 <p>Sam isn't the villain of this story. Sam is a good person who, for a long time, didn't see what was happening right in front of them — because no one had taught them what to look for.</p>
 <p>This is the story of how Sam learned to manage differently.</p>`,
-    visual:`<div class="stat-card mgr"><div class="stat-number">58%</div><div class="stat-label">of managers report they have never received training on recognising mental health concerns in their team. Noticing is a skill. It must be learned.</div></div>` },
+    visual:`<div class="stat-card mgr"><div class="stat-number">41%</div><div class="stat-label">of Australian workers say their managers and colleagues lack the skills to have conversations about mental health appropriately. Noticing is a skill. It must be learned.<a href="#" class="ref-sup" onclick="openRef(event,6)">[6]</a></div></div>` },
 
   { number:'02 / What Sam Missed', headline:'The signs hiding <em class="mgr-color">in plain sight</em>',
     body:`<p>Sam was busy. The team was delivering — mostly. Individual signals were easy to attribute to personality, to life outside work, to "just a phase." Sam made these attributions and moved on.</p>
@@ -820,8 +907,8 @@ const MANAGER_SCENES = [
   { number:'12 / Advocacy Upward', headline:'The manager as <em class="mgr-color">buffer and voice</em>',
     body:`<p>Sam cannot solve organisational-level demand alone. But Sam can do two things: buffer the team from unreasonable load where possible, and advocate upward for systemic change.</p>
 <p>This means taking data to leadership — turnover figures, sick leave trends, capacity versus pipeline — and naming the connection explicitly.</p>`,
-    visual:`<div class="stat-card mgr"><div class="stat-number">4:1</div><div class="stat-label">The return on investment for every £1 spent on employee mental health support. Prevention and early intervention are dramatically cheaper than turnover and long-term absence.</div></div>
-<div class="highlight-box"><strong>For leadership:</strong> Managers who advocate for their teams are not being difficult. They are protecting one of the organisation's most valuable assets.</div>` },
+    visual:`<div class="stat-card mgr"><div class="stat-number">$2.30</div><div class="stat-label">returned for every $1 invested in workplace mental health — the average Australian ROI. Prevention and early intervention are dramatically cheaper than turnover and long-term absence.<a href="#" class="ref-sup" onclick="openRef(event,3)">[3]</a></div></div>
+<div class="highlight-box"><strong>For leadership:</strong> Managers who advocate for their teams are not being difficult. They are protecting one of the organisation's most valuable assets. In some industries, the ROI reaches $5.70 per dollar spent.<a href="#" class="ref-sup" onclick="openRef(event,3)">[3]</a></div>` },
 
   { number:'13 / The Difference It Made', headline:'Alex, <em class="mgr-color">six months later</em>',
     body:`<p>Alex is still at the organisation. Returned from leave. Working at a recalibrated level — not diminished, but human. The work is still demanding. But the relationship with work has shifted: Alex knows now that struggling doesn't have to be hidden.</p>
@@ -841,10 +928,10 @@ const MANAGER_SCENES = [
 <li>Advocate upward: your team's sustainability is a leadership conversation</li>
 </ul>
 <div class="resources-grid" style="margin-top:20px">
-<div class="resource-item"><strong>CIPD</strong>cipd.org — People Management resources on psychological health at work</div>
-<div class="resource-item"><strong>Mind for Employers</strong>mind.org.uk/workplace — Manager mental health training and resources</div>
-<div class="resource-item"><strong>HSE</strong>hse.gov.uk/stress — Legal framework and management standards</div>
-<div class="resource-item"><strong>Thriving at Work</strong>The Stevenson/Farmer Review — evidence base for employer action</div>
+<div class="resource-item"><strong>Heads Up</strong>headsup.org.au — Practical tools and resources for managers and organisations, including free action plans</div>
+<div class="resource-item"><strong>Mentally Healthy Workplaces</strong>mentallyhealthyworkplaces.gov.au — The national hub for evidence-based workplace mental health guidance</div>
+<div class="resource-item"><strong>Safe Work Australia</strong>safeworkaustralia.gov.au — Model code of practice for psychosocial hazards and your legal obligations as a PCBU</div>
+<div class="resource-item"><strong>Comcare</strong>comcare.gov.au — Employer frameworks, return-to-work support, and the Mentally Healthy Workplaces toolkit</div>
 </div>`,
     isFinal: true }
 ];
@@ -1240,7 +1327,50 @@ document.addEventListener('keydown', e => {
   if (!document.getElementById('story').classList.contains('active')) return;
   if (e.key === 'ArrowDown') window.scrollBy({ top: window.innerHeight * 0.9, behavior: 'smooth' });
   if (e.key === 'ArrowUp')   window.scrollBy({ top: -window.innerHeight * 0.9, behavior: 'smooth' });
+  if (e.key === 'Escape') closeRefs();
 });
+
+// ══════════════════════════════════
+// REFERENCES PANEL
+// ══════════════════════════════════
+
+function toggleRefs() {
+  const panel = document.getElementById('refs-panel');
+  const btn   = document.getElementById('refs-toggle-btn');
+  const isOpen = panel.classList.contains('open');
+  panel.classList.toggle('open');
+  btn.textContent = isOpen ? 'References ↑' : 'References ↓';
+}
+
+function closeRefs() {
+  document.getElementById('refs-panel').classList.remove('open');
+  document.getElementById('refs-toggle-btn').textContent = 'References ↑';
+}
+
+function openRef(e, num) {
+  e.preventDefault();
+  const panel = document.getElementById('refs-panel');
+  panel.classList.add('open');
+  document.getElementById('refs-toggle-btn').textContent = 'References ↓';
+  // Scroll to the specific reference item
+  setTimeout(() => {
+    const items = panel.querySelectorAll('.refs-list li');
+    if (items[num - 1]) items[num - 1].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 100);
+}
+
+// Show references button when in story mode
+function updateRefsBtn() {
+  const btn = document.getElementById('refs-toggle-btn');
+  const inStory = document.getElementById('story').classList.contains('active');
+  btn.classList.toggle('visible', inStory);
+}
+
+// Patch startJourney and goHome to update refs btn visibility
+const _origStart = startJourney;
+// Already defined above; add observer on story class changes via MutationObserver
+const storyEl = document.getElementById('story');
+new MutationObserver(() => updateRefsBtn()).observe(storyEl, { attributes: true, attributeFilter: ['class'] });
 </script>
 </body>
 </html>
